@@ -55,7 +55,18 @@
       "AgentStepSize": 18,
       "AgentMaxSlope": 40,
       "ExcludedBodies": "",
-      "IncludedBodies": ""
+      "IncludedBodies": "",
+      "CustomBounds": false
+    },
+    "GameObjectSystems": {
+      "Sandbox.MovieMaker.MovieRecorderSystem": {
+        "DisableClientRecording": false
+      },
+      "Sandbox.Clutter.ClutterGridSystem": {
+        "Storage": {
+          "$blob": "f2358d86-c144-4770-8c0a-f11781e68151"
+        }
+      }
     }
   },
   "ResourceVersion": 3,

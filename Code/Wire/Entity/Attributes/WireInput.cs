@@ -1,9 +1,10 @@
 ﻿using System;
 
-[System.AttributeUsage(System.AttributeTargets.Class)]
-public class WireGate : System.Attribute
+[CodeGenerator( CodeGeneratorFlags.WrapPropertySet | CodeGeneratorFlags.Instance, "OnWireInputWrapSet" )]
+[AttributeUsage( AttributeTargets.Property)]
+public class WireInputAttribute : Attribute
 {
 	private string name;
 
-	public WireGate( string name) { this.name = name; }
+	public WireInputAttribute( string name) { this.name = name; }
 }

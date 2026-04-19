@@ -1,0 +1,25 @@
+﻿@using Sandbox;
+@using Sandbox.UI;
+@inherits PanelComponent
+
+@if ( Player.IsValid() && Player.WantsHideHud )
+    return;
+
+<root>
+    @foreach(BaseWireEntity entity in Entities){
+        <DebugEntity Entity=@entity/>
+    }
+</root>
+
+@code {
+    Player Player => Player.FindLocalPlayer();
+    public List<BaseWireEntity> Entities { get; set; }
+
+    protected override int BuildHash(){
+        return System.HashCode.Combine(Entities.Count());
+    }
+
+    private void UpdateValues(){
+        
+    }
+}

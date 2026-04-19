@@ -4,7 +4,7 @@
 [Icon( "🚀" )]
 [ClassName( "wiretool" )]
 [Group( "Wire" )]
-public class WireThruster : ToolMode
+public class WireThrusterTool : ToolMode
 {
 	public override string Description => "Tool to place wire thrusters";
 	public override string PrimaryAction => "Place thruster";

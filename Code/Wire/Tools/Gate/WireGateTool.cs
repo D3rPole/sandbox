@@ -1,12 +1,13 @@
 ﻿
 using Sandbox;
 using Sandbox.UI;
+using System.Runtime.CompilerServices;
 
 [Title( "Wire - Gate" )]
 [Icon( "🔋" )]
 [ClassName( "wiregate" )]
 [Group( "Wire" )]
-public class GateTool : ToolMode
+public class WireGateTool : ToolMode
 {
 	public override string Description => "Tool to place Wire Gates";
 	public override string PrimaryAction => "Place Gate";

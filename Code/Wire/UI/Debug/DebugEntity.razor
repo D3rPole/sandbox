@@ -1,0 +1,41 @@
+@using Sandbox;
+@using Sandbox.UI;
+
+<root>
+    <div class="panel">
+        <div class="name">@Entity.Name</div>
+        <div class="divider"></div>
+        <div class="text">Inputs</div>
+        @foreach (KeyValuePair<string, object> input in inputs)
+        {
+            <div class="text">@input.Key: @input.Value.ToString()</div>
+        }
+<div class="divider"></div>
+        <div class="text">Outputs</div>
+        @foreach (KeyValuePair<string, object> output in outputs)
+        {
+            <div class="text">@output.Key: @output.Value.ToString()</div>
+        }
+    </div>
+</root>
+
+@code {
+    public BaseWireEntity Entity
+    {
+        get => field; set
+        {
+            field = value;
+            UpdateValues();
+            field.Updated += UpdateValues;
+        }
+    }
+
+    private Dictionary<string, object> inputs;
+    private Dictionary<string, object> outputs;
+
+    private void UpdateValues()
+    {
+        inputs = Entity.GetInputs();
+        outputs = Entity.GetOutputs();
+    }
+}

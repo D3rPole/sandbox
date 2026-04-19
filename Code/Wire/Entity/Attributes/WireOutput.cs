@@ -1,9 +1,9 @@
 ﻿using System;
 
-[System.AttributeUsage( System.AttributeTargets.Property)]
-public class WireInput : System.Attribute
+[System.AttributeUsage(System.AttributeTargets.Property)]
+public class WireOutput : System.Attribute
 {
 	private string name;
 
-	public WireInput(string name) { this.name = name; }
+	public WireOutput( string name) { this.name = name; }
 }

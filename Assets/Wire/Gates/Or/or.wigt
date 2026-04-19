@@ -1,5 +1,5 @@
 {
-  "Prefab": "wire/gates/or/cube.prefab",
+  "Prefab": "wire/gates/or/orgate.prefab",
   "Title": "Or",
   "Description": "Or",
   "__references": [],
