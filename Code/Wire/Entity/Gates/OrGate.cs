@@ -13,8 +13,10 @@ public class OrGate : BaseWireEntity
 	[WireInput( "B" )]
 	public bool B { get; set; }
 
+
 	[WireOutput( "Out" )]
 	public bool Out { get; set; }
+	
 	protected override void OnUpdate()
 	{
 
@@ -22,6 +24,6 @@ public class OrGate : BaseWireEntity
 
 	protected override void OnInputChanged( string inputName )
 	{
-	
+		Out = B || A;
 	}
 }

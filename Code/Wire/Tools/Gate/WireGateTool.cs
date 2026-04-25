@@ -13,7 +13,7 @@ public class WireGateTool : ToolMode
 	public override string PrimaryAction => "Place Gate";
 
 	[Property, ResourceSelect( Extension = "wigt", AllowPackages = true ), Title( "Gate" )]
-	public string GateDefinition { get; set; } = "wire/gates/and/and.wigt";
+	public string GateDefinition { get; set; } = "Wire/Gates/Or/or.wigt";
 
 	private Color _previewTint = Color.Random;
 

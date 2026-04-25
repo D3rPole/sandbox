@@ -15,6 +15,12 @@ public partial class Toolgun : ScreenWeapon
 		currentMode?.OnCameraMove( player, ref angles );
 	}
 
+	public override bool CanSwitchOff()
+	{
+		var tool = this.GameObject.Components.FirstOrDefault(c => c is ToolMode && c.Active) as ToolMode;
+		return !tool.DisallowWeaponSwitching;
+	}
+
 	public override void OnAdded( Player player )
 	{
 		base.OnAdded( player );

@@ -128,6 +128,16 @@ public partial class BaseCarryable : Component, IKillIcon
 		return true;
 	}
 
+	/// <summary>
+	/// Can we switch away from this?
+	/// </summary>
+	/// <returns></returns>
+	public virtual bool CanSwitchOff()
+	{
+		return true;
+	}
+
+
 	protected override void OnEnabled()
 	{
 		CreateWorldModel();

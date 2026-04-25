@@ -2,7 +2,7 @@
 
 [Title( "Wire - Thruster" )]
 [Icon( "🚀" )]
-[ClassName( "wiretool" )]
+[ClassName( "wirethrustertool" )]
 [Group( "Wire" )]
 public class WireThrusterTool : ToolMode
 {

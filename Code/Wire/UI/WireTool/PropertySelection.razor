@@ -1,0 +1,123 @@
+@using Sandbox
+@using Sandbox.UI
+@inherits PanelComponent
+
+<root>
+    @if (Entity is not null)
+    {
+        @if (!ShowOutputs)
+        {
+            <div class="panel">
+                <div class="name">Inputs</div>
+                <div class="divider"></div>
+                @{ int index = 0; }
+                @foreach (var input in wireInterfaces)
+                {
+                    int currentIndex = index;
+                    <div class="text @(SelectedProperty == currentIndex ? "selected" : "")">
+                        @input.Item2 ; @input.Item3.PropertyType.Name
+                    </div>
+                    index++;
+                }
+            </div>
+        }
+        else
+        {
+            <div class="panel">
+                <div class="name">Outputs</div>
+                <div class="divider"></div>
+                @{ int index = 0; }
+                @foreach (var output in wireInterfaces)
+                {
+                    int currentIndex = index;
+                    <div class="text @(SelectedProperty == currentIndex ? "selected" : "")">
+                        @output.Item2 ; @output.Item3.PropertyType.Name
+                    </div>
+                    index++;
+                }
+            </div>
+        }
+    }
+</root>
+
+@code {
+    [Property]
+    public BaseWireEntity? Entity
+    {
+        get => field;
+         set
+        {
+            field = value;
+            if(ShowOutputs){
+                var wireInterfaces = Entity?.outputProperties
+                    .Select(kvp => (kvp.Key.Item1, kvp.Key.Item2, kvp.Value))
+                    .ToList();
+            }
+            else
+            {
+                var wireInterfaces = Entity?.inputProperties
+                    .Select(kvp => (kvp.Key.Item1, kvp.Key.Item2, kvp.Value))
+                    .ToList();
+            }
+        }
+    }
+    [Property]
+    public bool ShowOutputs {
+        get => field; set{
+        field = value;
+        if(value){
+            var wireInterfaces = Entity?.outputProperties
+                .Select(kvp => (kvp.Key.Item1, kvp.Key.Item2, kvp.Value))
+                .ToList();
+        }
+        else
+        {
+            var wireInterfaces = Entity?.inputProperties
+                .Select(kvp => (kvp.Key.Item1, kvp.Key.Item2, kvp.Value))
+                .ToList();
+        }
+    }}
+
+    private List<(Type,string, PropertyDescription)> wireInterfaces;
+
+    public (BaseWireEntity, PropertyDescription)? GetSelection(){
+        if(Entity is null || wireInterfaces is null || SelectedProperty < 0 || SelectedProperty >= wireInterfaces.Count())
+            return null;
+        
+        var property = wireInterfaces[SelectedProperty].Item3;
+        if(property is null)
+            return null;
+
+        return (Entity, property);
+    }
+
+    public int SelectedProperty = -1;
+
+    public void MoveSlot(int x){
+        SelectedProperty += x;
+        if(ShowOutputs){
+            if(SelectedProperty < 0){
+                SelectedProperty = Entity.outputProperties.Count() - 1;
+            }
+            if(SelectedProperty >= Entity.outputProperties.Count() ){
+                SelectedProperty = 0;
+            }
+        }else{
+            if(SelectedProperty < 0){
+                SelectedProperty = Entity.inputProperties.Count() - 1;
+            }
+            if(SelectedProperty >= Entity.inputProperties.Count() ){
+                SelectedProperty = 0;
+            }
+        }
+    }
+
+    protected override int BuildHash()
+    {
+        // Hash the entity AND the count of its properties
+        // If the dictionary goes from 0 to 5 items, the hash changes and UI updates
+        if (Entity is null)
+            return -1;
+        return Entity.GetHashCode() + wireInterfaces.GetHashCode() + SelectedProperty;
+    }
+}

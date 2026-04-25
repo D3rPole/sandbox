@@ -53,6 +53,9 @@
         if (inventory is null)
             return;
 
+        if(!inventory.GetSlot( activeSlot ).CanSwitchOff())
+            return;
+
         MoveSlot(-(int)Input.MouseWheel.y);
 
         if ( Input.Pressed( "invprev" ) && prev.IsValid() )

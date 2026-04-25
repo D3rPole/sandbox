@@ -1,7 +1,0 @@
-{
-  "Prefab": "wire/gates/and/cube.prefab",
-  "Title": "And gate",
-  "Description": "And gate",
-  "__references": [],
-  "__version": 0
-}

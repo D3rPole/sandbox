@@ -16,6 +16,8 @@ public abstract partial class ToolMode : Component, IToolInfo
 	/// </summary>
 	public virtual bool AbsorbMouseInput => false;
 
+	public virtual bool DisallowWeaponSwitching => false;
+
 	/// <summary>
 	/// Display name for the tool, defaults to the TypeDescription title.
 	/// </summary>
