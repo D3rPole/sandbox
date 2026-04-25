@@ -10,7 +10,7 @@ public class WireTool : ToolMode
 {
 	public override string Description => "Tool to wire entities";
 	public override string PrimaryAction => "Wire component";
-	public override string SecondaryAction => "Unwire component";
+	public override string SecondaryAction => step == 0 ? "Disconnect all wire connections" : step == 1 ? "Disconnect wire connection" : null;
 	public override string ReloadAction => inputEntity is null && outputEntity is null ? null : "Abort wiring";
 	public override bool AbsorbMouseInput => propertySelection?.Entity is not null && (inputEntity is not null && inputPropertyDescription is null || outputEntity is not null && outputPropertyDescription is null);
 	public override bool DisallowWeaponSwitching => propertySelection?.Entity is not null && (inputEntity is not null && inputPropertyDescription is null || outputEntity is not null && outputPropertyDescription is null);
@@ -50,7 +50,12 @@ public class WireTool : ToolMode
 				var propertySelection = gui.Components.Create<PropertySelection>();
 				Scene.Root.Children.Add( gui );
 			}
-			propertySelection.Entity = wireEntity;
+			if(propertySelection.Entity != wireEntity )
+			{
+				propertySelection.SelectedProperty = -1;
+				propertySelection.Entity = wireEntity;
+			}
+			
 			if ( inputEntity is null || inputPropertyDescription is null )
 			{
 				propertySelection?.ShowOutputs = false;
@@ -80,11 +85,17 @@ public class WireTool : ToolMode
 						if ( property is null )
 							return;
 						inputPropertyDescription = property?.Item2;
+						propertySelection.SelectedProperty = -1;
 						step = 2;
 						this.ShootEffects( select );
 						return;
 					}
 				case 2:
+					if(wireEntity == inputEntity)
+					{
+						Notices.AddNotice( "warning", "#e55", $"Unable to wire an entity to itself!".Trim(), 5 );
+						return;
+					}
 					outputEntity = wireEntity;
 					propertySelection.SelectedProperty = 0;
 					this.ShootEffects( select );
@@ -96,19 +107,22 @@ public class WireTool : ToolMode
 						if ( property is null )
 							return;
 						outputPropertyDescription = property?.Item2;
-						outputEntity.wireConnections.Add(new WireConnection()
+						outputEntity.WireOutConnections.Add(new WireConnection()
 						{
 							TargetComponent = inputEntity,
 							TargetField = inputPropertyDescription,
 							OriginField = outputPropertyDescription
 						} );
+						inputEntity.WireInConnections.Add(new WireConnection()
+						{
+							TargetComponent = outputEntity,
+							TargetField = outputPropertyDescription,
+							OriginField = inputPropertyDescription
+						} );
+						propertySelection.SelectedProperty = -1;
 						// Reset before finishing
-						inputEntity = null;
-						inputPropertyDescription = null;
-						outputEntity = null;
-						outputPropertyDescription = null;
-						this.ShootEffects( select );
-						step = 0;
+						ShootEffects( select );
+						Reset();
 						return;
 					}
 			}
@@ -116,19 +130,50 @@ public class WireTool : ToolMode
 		}
 		else if ( Input.Pressed( "attack2" ) )
 		{
+			if(wireEntity is null || propertySelection is null)
+				return;
+			if(step > 1)
+			{
+				Notices.AddNotice( "warning", "#e55", $"Unable to unwire an entitiy in the middle of a wiring process!".Trim(), 5 );
+				return;
+			}
 
+			if(step == 0 )
+			{
+				int removed = wireEntity.DisconnectAllWireConnections();
+				if(removed > 0 )
+				{
+					Notices.AddNotice( "cached", "#3273eb", $"Disconnected all wire connections from {wireEntity.Name}.", 5 );
+					ShootEffects( select );
+					Reset();
+					return;
+				}
+				Notices.AddNotice( "warning", "#ea5", $"No wire connections to disconnect.", 5 );
+			}
+			else if(step == 1 )
+			{
+				var property = propertySelection.GetSelection();
+				if(property is null)
+					return;
+				var wireConnection = property?.Item1.WireInConnections.FirstOrDefault(c => c.OriginField.Name == property?.Item2.Name && c.OriginField.PropertyType == property?.Item2.PropertyType);
+				if(wireConnection is null )
+				{
+					Notices.AddNotice( "warning", "#e55", $"Could not disconnect wire! (Couldn't find wire connection)", 5 );
+					return;
+				}
+				property?.Item1.DisconnectWireConnection(wireConnection);
+				Notices.AddNotice( "cached", "#3273eb", $"Input {property?.Item2.Name} disconnected.", 5 );
+				ShootEffects( select );
+				Reset();
+			}
 		}
 		else if ( Input.Pressed( "reload" ) )
 		{
 			// Reset entire process
 			if ( inputEntity is null && outputEntity is null )
 				return;
-			inputEntity = null;
-			inputPropertyDescription = null;
-			outputEntity = null;
-			outputPropertyDescription = null;
-			step = 0;
-			this.Toolgun.SpinCoil();
+			Reset();
+			Toolgun.SpinCoil();
 		}
 		else if ( Input.MouseWheel.y != 0 )
 		{
@@ -137,6 +182,21 @@ public class WireTool : ToolMode
 				propertySelection?.MoveSlot( -(int)Input.MouseWheel.y );
 			}
 		}
+	}
+
+	private void Reset()
+	{
+		inputEntity = null;
+		inputPropertyDescription = null;
+		outputEntity = null;
+		outputPropertyDescription = null;
+		step = 0;
+	}
+
+	protected override void OnDisabled()
+	{
+		base.OnDisabled();
+		Reset();
 	}
 
 	private BaseWireEntity? CheckForWireComponent( SelectionPoint traceSelect )

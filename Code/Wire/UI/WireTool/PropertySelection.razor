@@ -14,7 +14,7 @@
                 @foreach (var input in wireInterfaces)
                 {
                     int currentIndex = index;
-                    <div class="text @(SelectedProperty == currentIndex ? "selected" : "")">
+                    <div class="text wireProperty @(SelectedProperty == currentIndex ? "selected" : "") @(IsWired(input.Item3) ? "isWired" : "notWired")">
                         @input.Item2 ; @input.Item3.PropertyType.Name
                     </div>
                     index++;
@@ -30,7 +30,7 @@
                 @foreach (var output in wireInterfaces)
                 {
                     int currentIndex = index;
-                    <div class="text @(SelectedProperty == currentIndex ? "selected" : "")">
+                    <div class="text wireProperty @(SelectedProperty == currentIndex ? "selected" : "")">
                         @output.Item2 ; @output.Item3.PropertyType.Name
                     </div>
                     index++;
@@ -48,37 +48,41 @@
          set
         {
             field = value;
-            if(ShowOutputs){
-                var wireInterfaces = Entity?.outputProperties
-                    .Select(kvp => (kvp.Key.Item1, kvp.Key.Item2, kvp.Value))
-                    .ToList();
-            }
-            else
-            {
-                var wireInterfaces = Entity?.inputProperties
-                    .Select(kvp => (kvp.Key.Item1, kvp.Key.Item2, kvp.Value))
-                    .ToList();
-            }
+            PopulateWireInterfaces();
         }
     }
     [Property]
     public bool ShowOutputs {
         get => field; set{
         field = value;
-        if(value){
-            var wireInterfaces = Entity?.outputProperties
-                .Select(kvp => (kvp.Key.Item1, kvp.Key.Item2, kvp.Value))
-                .ToList();
-        }
-        else
-        {
-            var wireInterfaces = Entity?.inputProperties
-                .Select(kvp => (kvp.Key.Item1, kvp.Key.Item2, kvp.Value))
-                .ToList();
-        }
+        PopulateWireInterfaces();
     }}
 
-    private List<(Type,string, PropertyDescription)> wireInterfaces;
+    private bool IsWired(PropertyDescription propertyDescription){
+        return Entity.WireInConnections.Exists(c => c.OriginField.Name == propertyDescription.Name && c.OriginField.PropertyType == propertyDescription.PropertyType);
+    }
+
+    private void PopulateWireInterfaces(){
+        if(Entity is null){
+            wireInterfaces = null;
+            return;
+        }
+
+        if(ShowOutputs){
+            wireInterfaces = new();
+            foreach(var _interface in Entity.outputProperties){
+                wireInterfaces.Add((_interface.Key.type, _interface.Key.name, _interface.Value));
+            }
+        }else{
+            wireInterfaces = new();
+            foreach(var _interface in Entity.inputProperties){
+                wireInterfaces.Add((_interface.Key.type, _interface.Key.name, _interface.Value));
+            }
+        }
+    }
+
+    [Property]
+    private List<(Type, string, PropertyDescription)> wireInterfaces;
 
     public (BaseWireEntity, PropertyDescription)? GetSelection(){
         if(Entity is null || wireInterfaces is null || SelectedProperty < 0 || SelectedProperty >= wireInterfaces.Count())
@@ -118,6 +122,6 @@
         // If the dictionary goes from 0 to 5 items, the hash changes and UI updates
         if (Entity is null)
             return -1;
-        return Entity.GetHashCode() + wireInterfaces.GetHashCode() + SelectedProperty;
+        return Entity.GetHashCode() + wireInterfaces.GetHashCode() + wireInterfaces.Count() + SelectedProperty;
     }
 }

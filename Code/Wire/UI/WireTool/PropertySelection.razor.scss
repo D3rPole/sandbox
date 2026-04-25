@@ -22,6 +22,7 @@ PropertySelection
 		gap: 4px;
 		font-family: $title-font;
 		padding: 16px;
+		margin-right: 64px;
 		margin-top: 16px;
 		background-color: $hud-element-bg;
 		border-radius: $hud-radius;
@@ -57,18 +58,6 @@ PropertySelection
 		margin-bottom: 4px;
 	}
 
-	.action
-	{
-		flex-direction: row;
-		align-items: center;
-		gap: 10px;
-	}
-
-	.key
-	{
-		width: 48px;
-	}
-
 	.text
 	{
 		font-size: 16px;
@@ -76,7 +65,23 @@ PropertySelection
 		color: $hud-text;
 	}
 
+	.wireProperty{
+		width: 100%;
+	}
+
+	.wireProperty:not(.isWired.selected){
+		padding: 2px;
+	}
+
 	.selected{
 		background-color: $color-accent;
+	}
+
+	.isWired{
+		background-color: $hud-element-bg;
+	}
+
+	.selected.isWired {
+		border: 2px solid #f00; 
 	}
 }

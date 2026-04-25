@@ -44,9 +44,7 @@ public class WireGateTool : ToolMode
 		}
 		else if ( Input.Pressed( "attack2" ) )
 		{
-			Spawn( select, thrusterDef.Prefab, placementTx, false, _previewTint );
-			ShootEffects( select );
-			_previewTint = Color.Random;
+
 		}
 
 		DebugOverlay.GameObject( thrusterDef.Prefab.GetScene(), transform: placementTx, castShadows: true);

@@ -10,7 +10,9 @@ public class WireConnection
 public abstract class BaseWireEntity : Component, IWireEntity
 {
 	[Property]
-	public List<WireConnection> wireConnections = new();
+	public List<WireConnection> WireOutConnections = new();
+	[Property]
+	public List<WireConnection> WireInConnections = new();
 	[Property]
 	public Dictionary<(Type type, string name), PropertyDescription> outputProperties
 	{
@@ -55,12 +57,26 @@ public abstract class BaseWireEntity : Component, IWireEntity
 	[Property]
 	public abstract string Name { get; }
 
+	private List<(string PropertyName, string PropertyType)> dirty = new();
+
+	protected override void OnFixedUpdate()
+	{
+		dirty.Clear();
+		base.OnFixedUpdate();
+	}
+
+	protected override void OnDestroy()
+	{
+		DisconnectAllWireConnections();
+		base.OnDestroy();
+	}
+
 	public void OnWireOutputWrapSet<T>( WrappedPropertySet<T> p )
 	{
 		p.Setter( p.Value );
 
 		var property = outputProperties[(typeof( T ), p.PropertyName)];
-		var connections = wireConnections.FindAll( c => c.OriginField == property );
+		var connections = WireOutConnections.FindAll( c => c.OriginField == property );
 		foreach ( var connection in connections )
 		{
 			connection.TargetField.SetValue( connection.TargetComponent, p.Value );
@@ -69,8 +85,61 @@ public abstract class BaseWireEntity : Component, IWireEntity
 		Updated?.Invoke();
 	}
 
+	public int DisconnectAllWireConnections()
+	{
+		int removed = 0;
+		foreach ( var connection in WireOutConnections )
+		{
+			removed += connection.TargetComponent.WireInConnections.RemoveAll( c => c.TargetComponent == this );
+		}
+		foreach ( var connection in WireInConnections )
+		{
+			removed += connection.TargetComponent.WireOutConnections.RemoveAll( c => c.TargetComponent == this );
+		}
+		if ( WireInConnections.Count > 0 )
+		{
+			removed += WireInConnections.Count;
+			WireInConnections.Clear();
+		}
+		if ( WireOutConnections.Count > 0 )
+		{
+			removed += WireOutConnections.Count;
+			WireOutConnections.Clear();
+		}
+		return removed;
+	}
+
+	/// <summary>
+	/// Removes entity connection including out/ingoing from other entities
+	/// </summary>
+	/// <param name="connection"></param>
+	public void DisconnectWireConnection( WireConnection connection )
+	{
+		connection.TargetComponent.WireInConnections.RemoveAll( c =>
+			c.TargetComponent == this &&
+			c.TargetField.Name == connection.OriginField.Name &&
+			c.TargetField.PropertyType == connection.OriginField.PropertyType &&
+			c.OriginField.Name == connection.TargetField.Name &&
+			c.OriginField.PropertyType == connection.TargetField.PropertyType );
+
+		connection.TargetComponent.WireOutConnections.RemoveAll( c =>
+			c.TargetComponent == this &&
+			c.TargetField.Name == connection.OriginField.Name &&
+			c.TargetField.PropertyType == connection.OriginField.PropertyType &&
+			c.OriginField.Name == connection.TargetField.Name &&
+			c.OriginField.PropertyType == connection.TargetField.PropertyType );
+
+		WireOutConnections.Remove( connection );
+		WireInConnections.Remove( connection );
+	}
+
 	public void OnWireInputWrapSet<T>( WrappedPropertySet<T> p )
 	{
+		var name = p.PropertyName;
+		var type = p.TypeName;
+		if ( dirty.Exists( t => t.PropertyName == name && t.PropertyType == type ) )
+			return; // already set this tick, avoid multiple inputs / infinite loops
+		dirty.Add( (name, type) );
 		OnInputChanged( p.PropertyName );
 		p.Setter( p.Value );
 		Updated?.Invoke();
