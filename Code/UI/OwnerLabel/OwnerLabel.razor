@@ -5,20 +5,20 @@
 
 <root>
 	<div class="owner-label hud-panel">
-		<div class="avatar" style="background-image: url( avatar:@_ownerId )"></div>
-		<label class="name">@_ownerName</label>
+		<label class="name">Owned by @_ownerName</label>
 	</div>
 </root>
 
 @code
 {
-	string _ownerName;
-	ulong _ownerId;
+    string _ownerName;
+
+    Player Player => Player.FindLocalPlayer();
 
 	protected override void OnUpdate()
 	{
 		var camera = Scene.Camera;
-		if ( camera is null )
+        if (camera is null || (Player.IsValid() && Player.WantsHideHud) )
 		{
 			Panel.SetClass( "visible", false );
 			return;
@@ -35,7 +35,6 @@
 			if ( ownable.IsValid() && ownable.Owner is not null )
 			{
 				_ownerName = ownable.Owner.DisplayName;
-				_ownerId = ownable.Owner.SteamId;
 				Panel.SetClass( "visible", true );
 				return;
 			}
@@ -44,5 +43,5 @@
 		Panel.SetClass( "visible", false );
 	}
 
-	protected override int BuildHash() => System.HashCode.Combine( _ownerName, _ownerId );
+	protected override int BuildHash() => System.HashCode.Combine( _ownerName );
 }

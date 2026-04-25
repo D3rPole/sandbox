@@ -145,7 +145,7 @@ public sealed partial class GameManager : GameObjectSystem<GameManager>, Compone
 		Assert.True( player.IsValid(), "Player invalid" );
 		Assert.True( player.PlayerData.IsValid(), $"{player.GameObject.Name}'s PlayerData invalid" );
 
-		var source = dmg.Attacker?.GetComponent<IKillSource>();
+		var source = dmg.Attacker?.GetComponentInParent<IKillSource>( true );
 		if ( source == null ) return;
 
 		var isSuicide = source is Player p && p == player;
@@ -256,12 +256,11 @@ public sealed partial class GameManager : GameObjectSystem<GameManager>, Compone
 
 		if ( spawner is not null && await spawner.Loading )
 		{
-			Log.Info( $"[Spawn] Spawning '{ident}' type='{type}' spawner={spawner.GetType().Name} metadata={(metadata ?? "null")}" );
 			await SpawnAndUndo( spawner, spawnTransform, player );
 			return;
 		}
 
-		Log.Warning( $"[Spawn] Couldn't resolve '{ident}' — spawner={(spawner is null ? "null" : "not ready")}" );
+		Log.Warning( $"Couldn't resolve '{ident}' — spawner={(spawner is null ? "null" : "not ready")}" );
 	}
 
 	/// <summary>
@@ -384,6 +383,9 @@ public sealed partial class GameManager : GameObjectSystem<GameManager>, Compone
 		if ( !go.IsValid() || go.IsProxy ) return;
 		if ( go.Tags.Has( "player" ) ) return;
 
+		// Check ownership if the object has an Ownable component
+		if ( !go.HasAccess( Rpc.Caller ) ) return;
+
 		go.Destroy();
 	}
 
@@ -394,6 +396,8 @@ public sealed partial class GameManager : GameObjectSystem<GameManager>, Compone
 	public static void BreakInspectedProp( Prop prop )
 	{
 		if ( !prop.IsValid() || prop.IsProxy ) return;
+		// Check ownership if the object has an Ownable component
+		if ( !prop.GameObject.HasAccess( Rpc.Caller ) ) return;
 
 		var damageable = prop.GetComponent<Component.IDamageable>();
 		if ( damageable is null ) return;
