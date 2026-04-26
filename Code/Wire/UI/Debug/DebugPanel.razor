@@ -7,7 +7,25 @@
 
 <root>
     @foreach(BaseWireEntity entity in Entities){
-        <DebugEntity Entity=@entity/>
+        <div class="panel">
+            <div class="name">@entity.Name</div>
+            <div class="divider"></div>
+            @if(entity.GetInputs().Count > 0){
+                <div class="text">Inputs</div>
+                @foreach (KeyValuePair<string, object> input in entity.GetInputs())
+                {
+                    <div class="text">@input.Key: @input.Value.ToString()</div>
+                }
+                <div class="divider"></div>
+            }
+            @if(entity.GetOutputs().Count > 0){
+                <div class="text">Outputs</div>
+                @foreach (KeyValuePair<string, object> output in entity.GetOutputs())
+                {
+                    <div class="text">@output.Key: @output.Value.ToString()</div>
+                }
+            }
+        </div>
     }
 </root>
 
@@ -16,7 +34,24 @@
     public List<BaseWireEntity> Entities { get; set; }
 
     protected override int BuildHash(){
-        return System.HashCode.Combine(Entities.Count());
+        int i = Entities?.Count() ?? -1;
+        foreach(var entity in Entities){
+            foreach(var property in entity.GetOutputs()){
+                var o = property.Value;
+                if(o is null)
+                    i--;
+                else
+                    i += o.GetHashCode();
+            }
+            foreach(var property in entity.GetInputs()){
+                var o = property.Value;
+                if(o is null)
+                    i--;
+                else
+                    i += o.GetHashCode();
+            }
+        }
+        return i;
     }
 
     private void UpdateValues(){

@@ -17,9 +17,10 @@ public class OrGate : BaseWireEntity
 	[WireOutput( "Out" )]
 	public bool Out { get; set; }
 	
-	protected override void OnUpdate()
+	protected override void OnFixedUpdate()
 	{
-
+		base.OnFixedUpdate();
+		//Out = B || A;
 	}
 
 	protected override void OnInputChanged( string inputName )

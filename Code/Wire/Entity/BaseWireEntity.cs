@@ -140,8 +140,8 @@ public abstract class BaseWireEntity : Component, IWireEntity
 		if ( dirty.Exists( t => t.PropertyName == name && t.PropertyType == type ) )
 			return; // already set this tick, avoid multiple inputs / infinite loops
 		dirty.Add( (name, type) );
-		OnInputChanged( p.PropertyName );
 		p.Setter( p.Value );
+		OnInputChanged( p.PropertyName );
 		Updated?.Invoke();
 	}
 
